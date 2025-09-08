@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <title>Quản lý Hóa đơn</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="js/common.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+  <div class="flex">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-blue-900 text-white min-h-screen">
+      <div class="p-6 text-2xl font-bold">Hotel Manager</div>
+      <nav class="px-2">
+        <a href="index.html" class="block py-3 px-4 rounded hover:bg-blue-800">Dashboard</a>
+        <a href="rooms.html" class="block py-3 px-4 rounded hover:bg-blue-800">Phòng</a>
+        <a href="services.html" class="block py-3 px-4 rounded hover:bg-blue-800">Dịch vụ</a>
+        <a href="customers.html" class="block py-3 px-4 rounded hover:bg-blue-800">Khách hàng</a>
+        <a href="bookings.html" class="block py-3 px-4 rounded hover:bg-blue-800">Đặt phòng</a>
+        <a href="service_usage.html" class="block py-3 px-4 rounded hover:bg-blue-800">Sử dụng dịch vụ</a>
+        <a href="invoices.html" class="block py-3 px-4 rounded bg-blue-800">Hóa đơn</a>
+        <a href="staff.html" class="block py-3 px-4 rounded bg-blue-800">Nhân viên</a>
+      </nav>
+    </aside>
+
+    <!-- Content -->
+    <div class="flex-1">
+      <header class="bg-white shadow">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="flex justify-between h-16 items-center">
+            <div class="flex items-center space-x-3">
+              <img src="assets/images/logo.png" alt="logo" class="h-10 w-10 object-contain"/>
+              <div class="text-xl font-bold">Hotel Manager</div>
+            </div>
+            <div id="header-user" class="flex items-center space-x-2"></div>
+          </div>
+        </div>
+      </header>
+
+      <main class="p-6">
+        <div class="flex justify-between items-center mb-6">
+          <h1 class="text-2xl font-bold">Danh sách hóa đơn</h1>
+          <button id="btnNewInvoice" class="bg-blue-600 text-white px-4 py-2 rounded-lg">+ Thêm hóa đơn</button>
+        </div>
+
+        <!-- Bảng Invoice -->
+        <div class="bg-white rounded-2xl shadow overflow-hidden">
+          <table class="min-w-full">
+            <thead class="bg-blue-600 text-white">
+              <tr>
+                <th class="py-3 px-4">STT</th>
+                <th class="py-3 px-4">Staff</th>
+                <th class="py-3 px-4">Booking</th>
+                <th class="py-3 px-4">Tổng tiền</th>
+                <th class="py-3 px-4">Ngày tạo</th>
+                <th class="py-3 px-4">Trạng thái</th>
+                <th class="py-3 px-4">Hành động</th>
+              </tr>
+            </thead>
+            <tbody id="invoiceTableBody"></tbody>
+          </table>
+        </div>
+
+        <!-- Modal CRUD -->
+        <div id="invoiceCrudModal" class="fixed inset-0 hidden items-center justify-center bg-black bg-opacity-50 z-50">
+          <div class="bg-white p-6 rounded-xl shadow-lg w-1/2">
+            <h3 id="modalInvoiceTitle" class="text-lg font-bold mb-4">Thêm / Sửa Invoice</h3>
+            <form id="invoiceForm" class="space-y-3">
+              <input type="hidden" id="invoice_id"/>
+              <input id="staff_id" class="border p-2 w-full" placeholder="Staff ID" required/>
+              <input id="booking_id" class="border p-2 w-full" placeholder="Booking ID" required/>
+              <input id="created_date" type="date" class="border p-2 w-full" required/>
+              <select id="payment_status" class="border p-2 w-full">
+                <option value="PAID">PAID</option>
+                <option value="UNPAID" selected>UNPAID</option>
+              </select>
+              <div class="flex justify-end space-x-2">
+                <button type="button" onclick="closeInvoiceCrudModal()" class="px-4 py-2 border rounded">Hủy</button>
+                <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded">Lưu</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- SCRIPT -->
+  <script>
+    const API_INVOICE="http://localhost:8000/hotel/hotel-api-php/src/controllers/InvoiceController.php";
+
+    // Load danh sách
+    async function loadInvoices(){
+      const res=await fetch(API_INVOICE);
+      const data=await res.json();
+      const tbody=document.getElementById("invoiceTableBody");
+      tbody.innerHTML="";
+      data.forEach((iv,i)=>{
+        tbody.innerHTML+=`
+          <tr class="border-b">
+            <td class="text-center">${i+1}</td>
+            <td class="text-center">${iv.staff_id}</td>
+            <td class="text-center">${iv.booking_id}</td>
+            <td class="text-center">${Number(iv.total_amount).toLocaleString()}₫</td>
+            <td class="text-center">${iv.created_date}</td>
+            <td class="text-center">${iv.payment_status}</td>
+            <td class="text-center space-x-2">
+              <button onclick='editInvoice(${JSON.stringify(iv)})' class="bg-yellow-400 px-2 py-1 rounded">Sửa</button>
+              <button onclick='deleteInvoice(${iv.invoice_id})' class="bg-red-600 text-white px-2 py-1 rounded">Xóa</button>
+              <button onclick='printInvoice(${iv.booking_id})' class="bg-green-600 text-white px-2 py-1 rounded">In</button>
+            </td>
+          </tr>`;
+      })
+    }
+
+    // Open/close modal
+    function openInvoiceCrudModal(){document.getElementById("invoiceCrudModal").classList.replace("hidden","flex");}
+    function closeInvoiceCrudModal(){document.getElementById("invoiceCrudModal").classList.replace("flex","hidden");}
+
+    // Add
+    function addInvoice() {
+      document.getElementById("modalInvoiceTitle").innerText = "Thêm Invoice";
+      document.getElementById("invoice_id").value = "";
+      document.getElementById("staff_id").value = "";
+      document.getElementById("booking_id").value = "";
+      document.getElementById("created_date").value = "";
+      document.getElementById("payment_status").value = "UNPAID";
+      openInvoiceCrudModal();
+    }
+    document.getElementById("btnNewInvoice").addEventListener("click", addInvoice);
+
+    // Edit
+    function editInvoice(iv){
+      document.getElementById("modalInvoiceTitle").innerText="Sửa Invoice";
+      document.getElementById("invoice_id").value=iv.invoice_id;
+      document.getElementById("staff_id").value=iv.staff_id;
+      document.getElementById("booking_id").value=iv.booking_id;
+      document.getElementById("created_date").value=iv.created_date;
+      document.getElementById("payment_status").value=iv.payment_status;
+      openInvoiceCrudModal();
+    }
+
+    // Save
+    document.getElementById("invoiceForm").addEventListener("submit",async e=>{
+      e.preventDefault();
+      const id=document.getElementById("invoice_id").value;
+      const data={
+        staff_id:document.getElementById("staff_id").value,
+        booking_id:document.getElementById("booking_id").value,
+        created_date:document.getElementById("created_date").value,
+        payment_status:document.getElementById("payment_status").value
+      };
+      if(id){
+        await fetch(API_INVOICE+"?id="+id,{method:"PUT",headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+      }else{
+        await fetch(API_INVOICE,{method:"POST",headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+      }
+      closeInvoiceCrudModal();loadInvoices();
+    });
+
+    // Delete
+    async function deleteInvoice(id){
+      if(confirm("Xóa invoice này?")){
+        await fetch(API_INVOICE+"?id="+id,{method:"DELETE"});
+        loadInvoices();
+      }
+    }
+
+    // Print (IN THẬT)
+    async function printInvoice(booking_id) {
+      const res = await fetch(`${API_INVOICE}?calc=${booking_id}`);
+      const data = await res.json();
+      if (data.error) { alert("Không tìm thấy hóa đơn"); return; }
+
+      const servicesHtml = (data.services && data.services.length)
+        ? data.services.map(s => `<li>${s.service_name} × ${s.quantity} = ${(s.quantity * s.unit_price).toLocaleString()}₫</li>`).join("")
+        : "<li>Không sử dụng</li>";
+
+      const html = `
+        <!DOCTYPE html>
+        <html lang="vi">
+        <head>
+          <meta charset="utf-8">
+          <title>In hóa đơn</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 20px; }
+            h2 { font-size: 20px; margin-bottom: 10px; }
+            .row { margin: 4px 0; }
+            .total { font-size: 18px; font-weight: bold; }
+            @media print {.no-print { display: none; }}
+          </style>
+        </head>
+        <body>
+          <h2>HÓA ĐƠN THANH TOÁN</h2>
+          <div class="row"><b>Khách hàng:</b> ${data.customer_name||""}</div>
+          <div class="row"><b>Phòng:</b> ${data.room_number||data.room_id||""}</div>
+          <div class="row"><b>Thời gian:</b> ${data.checkin_date} → ${data.checkout_date}</div>
+          <div class="row"><b>Số đêm:</b> ${data.nights}</div>
+          <div class="row"><b>Tiền phòng:</b> ${Number(data.room_subtotal).toLocaleString()}₫</div>
+          <div class="row"><b>Dịch vụ sử dụng:</b></div>
+          <ul>${servicesHtml}</ul>
+          <div class="row"><b>Tổng dịch vụ:</b> ${Number(data.service_total).toLocaleString()}₫</div>
+          <div class="row total">TỔNG CỘNG: ${Number(data.total_amount).toLocaleString()}₫</div>
+          <hr/>
+          <div class="row" style="font-size:12px;color:gray;">Ngày in: ${new Date().toLocaleDateString("vi-VN")}</div>
+          <div class="no-print" style="margin-top:12px;text-align:right;">
+            <button onclick="window.print()">In</button>
+          </div>
+        </body>
+        </html>
+      `;
+      const w = window.open("", "PRINT", "width=900,height=650");
+      w.document.open(); w.document.write(html); w.document.close();
+      w.focus();
+      setTimeout(()=>{ w.print(); w.close(); }, 300);
+    }
+
+    document.addEventListener("DOMContentLoaded", loadInvoices);
+  </script>
+<script>
+  requireAuth().catch(()=>{});
+</script>
+</body>
+</html>

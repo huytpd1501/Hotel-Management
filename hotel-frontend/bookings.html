@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <title>Quản lý Đặt phòng</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>window.API_BASE='http://localhost:8000/hotel/hotel-api-php/src/controllers';</script>
+  <script src="/hotel/hotel-frontend/js/common.js?v=5"></script>
+
+  <style>
+    table{border-collapse:collapse;width:100%}
+    .tbl-compact thead th{ padding:10px 12px; font-size:14px; }
+    .tbl-compact tbody td{ padding:6px 8px; font-size:14px; }
+    .btn-sm{ padding:4px 10px; font-size:14px; border-radius:6px; }
+    .input-sm{ padding:8px; font-size:14px; }
+    .gap-compact{ row-gap:10px; column-gap:12px; }
+  </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+  <div class="flex">
+    <aside class="w-64 bg-blue-900 text-white min-h-screen">
+      <div class="p-6 text-2xl font-bold">Hotel Manager</div>
+      <nav class="px-2">
+        <a href="index.html" class="block py-3 px-4 rounded hover:bg-blue-800">Dashboard</a>
+        <a href="rooms.html" class="block py-3 px-4 rounded hover:bg-blue-800">Phòng</a>
+        <a href="services.html" class="block py-3 px-4 rounded hover:bg-blue-800">Dịch vụ</a>
+        <a href="customers.html" class="block py-3 px-4 rounded hover:bg-blue-800">Khách hàng</a>
+        <a href="bookings.html" class="block py-3 px-4 rounded bg-blue-800">Đặt phòng</a>
+        <a href="service_usage.html" class="block py-3 px-4 rounded hover:bg-blue-800">Sử dụng dịch vụ</a>
+        <a href="invoices.html" class="block py-3 px-4 rounded hover:bg-blue-800">Hóa đơn</a>
+        <a href="staff.html" class="block py-3 px-4 rounded bg-blue-800">Nhân viên</a>
+      </nav>
+    </aside>
+
+    <div class="flex-1">
+      <header class="bg-white shadow">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="flex justify-between h-16 items-center">
+            <div class="flex items-center space-x-3">
+              <img src="assets/images/logo.png" alt="logo" class="h-10 w-10 object-contain"/>
+              <div class="text-xl font-bold">Hotel Manager</div>
+            </div>
+            <div id="header-user" class="flex items-center space-x-2"></div>
+          </div>
+        </div>
+      </header>
+
+      <main class="p-6">
+        <div class="flex justify-between items-center mb-4">
+          <h1 class="text-xl font-semibold">Danh sách đặt phòng</h1>
+          <button id="btnNewBooking"
+                  class="bg-blue-600 text-white btn-sm">+ Thêm đặt phòng</button>
+        </div>
+
+        <!-- Bảng Booking (compact) -->
+        <div class="bg-white rounded-xl shadow overflow-hidden">
+          <table class="min-w-full tbl-compact">
+            <thead class="bg-blue-600 text-white">
+              <tr>
+                <th class="text-left">STT</th>
+                <th class="text-left">Khách hàng</th>
+                <th class="text-left">Phòng</th>
+                <th class="text-left">Checkin</th>
+                <th class="text-left">Checkout</th>
+                <th class="text-left">Trạng thái</th>
+                <th class="text-right">Hành động</th>
+              </tr>
+            </thead>
+            <tbody id="bookingTableBody"></tbody>
+          </table>
+        </div>
+
+        <!-- Modal (compact) -->
+        <div id="bookingModal" class="fixed inset-0 hidden items-center justify-center z-50">
+          <div class="absolute inset-0 bg-black/50"></div>
+          <!-- Thu nhỏ: max-w-xl, p-4 -->
+          <div class="bg-white rounded-lg shadow-lg max-w-xl w-full z-10 p-4">
+            <div class="flex justify-between items-center mb-3">
+              <h3 id="modalTitle" class="text-base font-semibold">Thêm Booking</h3>
+              <button id="btnCloseModal" class="text-gray-500">✕</button>
+            </div>
+
+            <form id="bookingForm" class="grid gap-compact">
+              <input type="hidden" id="booking_id" />
+
+              <div class="grid md:grid-cols-2 gap-compact">
+                <div>
+                  <label class="block mb-1">Khách hàng</label>
+                  <select id="customer_id" class="border rounded w-full input-sm"></select>
+                </div>
+                <div>
+                  <label class="block mb-1">Phòng</label>
+                  <select id="room_id" class="border rounded w-full input-sm"></select>
+                </div>
+                <div>
+                  <label class="block mb-1">Ngày nhận</label>
+                  <input id="checkin_date" type="date" class="border rounded w-full input-sm" required />
+                </div>
+                <div>
+                  <label class="block mb-1">Ngày trả</label>
+                  <input id="checkout_date" type="date" class="border rounded w-full input-sm" required />
+                </div>
+                <div class="md:col-span-2">
+                  <label class="block mb-1">Trạng thái</label>
+                  <select id="status_booking" class="border rounded w-full input-sm">
+                    <option value="PENDING">PENDING</option>
+                    <option value="CONFIRMED" selected>CONFIRMED</option>
+                    <option value="CANCELLED">CANCELLED</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="bg-gray-50 rounded-md p-3 mt-1">
+                <div class="grid md:grid-cols-12 gap-3 items-end">
+                  <div class="md:col-span-7">
+                    <label class="block mb-1">Dịch vụ</label>
+                    <select id="service_select" class="border rounded w-full input-sm"></select>
+                  </div>
+                  <div class="md:col-span-3">
+                    <label class="block mb-1">Số lượng</label>
+                    <input id="service_qty" type="number" min="1" value="1" class="border rounded w-full input-sm"/>
+                  </div>
+                  <div class="md:col-span-2">
+                    <button type="button" id="btnAddService" class="btn-sm border w-full">Thêm</button>
+                  </div>
+                </div>
+
+                <div id="serviceChosen" class="mt-2 grid gap-2 text-sm">
+                  <!-- các item dịch vụ render tại đây -->
+                </div>
+              </div>
+
+              <div class="flex justify-end gap-2 mt-3">
+                <button type="button" id="btnCancel" class="btn-sm border">Hủy</button>
+                <button type="submit" class="btn-sm bg-blue-600 text-white">Lưu</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </main>
+    </div>
+  </div>
+<script src="js/bookings.js?v=compact-ui"></script>
+<script>
+requireAuth().catch(()=>{});
+</script>
+</body>
+</html>
