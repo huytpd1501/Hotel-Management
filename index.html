@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <title>Dashboard - Hotel</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+
+  <!-- Tailwind + libs -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/feather-icons"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <script src="/hotel/hotel-frontend/js/common.js"></script>
+
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="bg-gray-100 min-h-screen">
+  <div class="flex">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-blue-900 text-white min-h-screen">
+      <div class="p-6 text-2xl font-bold">Hotel Manager</div>
+      <nav class="px-2">
+        <a href="index.html" class="block py-3 px-4 rounded bg-blue-800">Dashboard</a>
+        <a href="rooms.html" class="block py-3 px-4 rounded hover:bg-blue-800">Phòng</a>
+        <a href="services.html" class="block py-3 px-4 rounded hover:bg-blue-800">Dịch vụ</a>
+        <a href="customers.html" class="block py-3 px-4 rounded hover:bg-blue-800">Khách hàng</a>
+        <a href="bookings.html" class="block py-3 px-4 rounded hover:bg-blue-800">Đặt phòng</a>
+        <a href="service_usage.html" class="block py-3 px-4 rounded hover:bg-blue-800">Sử dụng dịch vụ</a>
+        <a href="invoices.html" class="block py-3 px-4 rounded hover:bg-blue-800">Hóa đơn</a>
+        <a href="staff.html" class="block py-3 px-4 rounded hover:bg-blue-800">Nhân viên</a>
+      </nav>
+    </aside>
+
+    <!-- Content -->
+    <div class="flex-1">
+      <header class="bg-white shadow">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="flex justify-between h-16 items-center">
+            <div class="flex items-center space-x-3">
+              <img src="assets/images/logo.png" alt="logo" class="h-10 w-10 object-contain"/>
+              <div class="text-xl font-bold">Hotel Manager</div>
+            </div>
+            <div id="header-user" class="flex items-center space-x-2"></div>
+          </div>
+        </div>
+      </header>
+
+      <main class="p-6">
+        <h1 class="text-2xl font-bold mb-4">Bảng điều khiển</h1>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div class="bg-white rounded-2xl p-6 shadow">
+            <div class="text-sm text-gray-500">Tổng số phòng</div>
+            <div id="roomCount" class="text-3xl font-bold text-blue-600">0</div>
+          </div>
+          <div class="bg-white rounded-2xl p-6 shadow">
+            <div class="text-sm text-gray-500">Khách hàng</div>
+            <div id="customerCount" class="text-3xl font-bold text-green-600">0</div>
+          </div>
+          <div class="bg-white rounded-2xl p-6 shadow">
+            <div class="text-sm text-gray-500">Đặt phòng</div>
+            <div id="bookingCount" class="text-3xl font-bold text-purple-600">0</div>
+          </div>
+        </div>
+
+        <div class="mt-6 bg-white rounded-2xl p-6 shadow">
+          <h2 class="text-lg font-semibold mb-4">Biểu đồ doanh thu (mẫu)</h2>
+          <canvas id="revenueChart" height="120"></canvas>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- (tuỳ chọn) các helper API khác của bạn -->
+  <script src="/hotel/hotel-frontend/js/app.js"></script>
+
+  <script>
+    // Ép phải đăng nhập (nếu chưa có session -> chuyển về login.html)
+    requireAuth().catch(()=>{});
+
+    // Feather icons
+    feather.replace();
+
+    // Chart demo
+    const ctx = document.getElementById('revenueChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: ['Thg -5','Thg -4','Thg -3','Thg -2','Thg -1','Thg'],
+        datasets: [{
+          label: 'Doanh thu',
+          data: [12000000, 18000000, 14000000, 22000000, 19500000, 24000000]
+        }]
+      }
+    });
+  </script>
+</body>
+</html>

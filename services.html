@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <title>Quản lý Dịch vụ</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="js/common.js"></script>
+
+</head>
+<body class="bg-gray-100 min-h-screen">
+  <div class="flex">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-blue-900 text-white min-h-screen">
+      <div class="p-6 text-2xl font-bold">Hotel Manager</div>
+      <nav class="px-2">
+        <a href="index.html" class="block py-3 px-4 rounded hover:bg-blue-800">Dashboard</a>
+        <a href="rooms.html" class="block py-3 px-4 rounded hover:bg-blue-800">Phòng</a>
+        <a href="services.html" class="block py-3 px-4 rounded bg-blue-800">Dịch vụ</a>
+        <a href="customers.html" class="block py-3 px-4 rounded hover:bg-blue-800">Khách hàng</a>
+        <a href="bookings.html" class="block py-3 px-4 rounded hover:bg-blue-800">Đặt phòng</a>
+        <a href="service_usage.html" class="block py-3 px-4 rounded hover:bg-blue-800">Sử dụng dịch vụ</a>
+        <a href="invoices.html" class="block py-3 px-4 rounded hover:bg-blue-800">Hóa đơn</a>
+        <a href="staff.html" class="block py-3 px-4 rounded bg-blue-800">Nhân viên</a>
+      </nav>
+    </aside>
+
+    <!-- Content -->
+    <div class="flex-1">
+      <header class="bg-white shadow">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="flex justify-between h-16 items-center">
+            <div class="flex items-center space-x-3">
+              <img src="assets/images/logo.png" alt="logo" class="h-10 w-10 object-contain"/>
+              <div class="text-xl font-bold">Hotel Manager</div>
+            </div>
+            <div id="header-user" class="flex items-center space-x-2"></div>
+          </div>
+        </div>
+      </header>
+
+      <main class="p-6">
+        <div class="flex justify-between items-center mb-6">
+          <h1 class="text-2xl font-bold">Danh sách dịch vụ</h1>
+          <button id="btnNewService" class="bg-blue-600 text-white px-4 py-2 rounded-lg">+ Thêm dịch vụ</button>
+        </div>
+
+        <!-- Bảng Service -->
+<div class="bg-white rounded-2xl shadow overflow-hidden">
+  <table class="min-w-full">
+    <thead class="bg-blue-600 text-white">
+      <tr>
+        <th class="py-3 px-4">STT</th>
+        <th class="py-3 px-4">Tên dịch vụ</th>
+        <th class="py-3 px-4">Giá</th>
+        <th class="py-3 px-4">Mô tả</th>
+        <th class="py-3 px-4">Hành động</th>
+      </tr>
+    </thead>
+    <tbody id="serviceTableBody"></tbody>
+  </table>
+</div>
+
+<h2 class="text-xl font-bold mb-3">Hình ảnh dịch vụ</h2>
+  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+    <figure class="bg-white rounded shadow overflow-hidden">
+      <img src="assets/images/services/Breakfast.png" alt="Ăn sáng buffet" class="w-full h-44 object-cover">
+      <figcaption class="p-2 text-center font-semibold">Ăn sáng buffet</figcaption>
+    </figure>
+    <figure class="bg-white rounded shadow overflow-hidden">
+      <img src="assets/images/services/Spa.png" alt="Spa" class="w-full h-44 object-cover">
+      <figcaption class="p-2 text-center font-semibold">Spa</figcaption>
+    </figure>
+    <figure class="bg-white rounded shadow overflow-hidden">
+      <img src="assets/images/services/Airport.png" alt="Đưa đón sân bay" class="w-full h-44 object-cover">
+      <figcaption class="p-2 text-center font-semibold">Đưa đón sân bay</figcaption>
+    </figure>
+    <figure class="bg-white rounded shadow overflow-hidden">
+      <img src="assets/images/services/Dinner.png" alt="Ăn tối buffet" class="w-full h-44 object-cover">
+      <figcaption class="p-2 text-center font-semibold">Ăn tối buffet</figcaption>
+    </figure>
+  </div>
+</main>
+
+<!-- Modal Service -->
+<div id="serviceModal" class="fixed inset-0 hidden items-center justify-center z-50">
+  <div class="modal-backdrop absolute inset-0 bg-black opacity-50"></div>
+  <div class="bg-white rounded-lg shadow-lg max-w-xl w-full z-10 p-6">
+    <h3 id="modalServiceTitle" class="text-lg font-semibold mb-4">Thêm / Sửa Service</h3>
+    <form id="serviceForm">
+      <input type="hidden" id="service_id"/>
+      <input id="service_name" class="border p-2 rounded w-full mb-2" placeholder="Tên dịch vụ" required />
+      <input id="unit_price" type="number" class="border p-2 rounded w-full mb-2" placeholder="Giá" required />
+      <textarea id="service_desc" class="border p-2 rounded w-full mb-2" placeholder="Mô tả"></textarea>
+      <div class="flex justify-end space-x-2">
+        <button type="button" onclick="closeServiceModal()" class="px-4 py-2 border rounded">Hủy</button>
+        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded">Lưu</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+const API_SERVICE="http://localhost:8000/hotel/hotel-api-php/src/controllers/ServiceController.php";
+
+async function loadServices(){
+  const res=await fetch(API_SERVICE);
+  const data=await res.json();
+  const tbody=document.getElementById("serviceTableBody");
+  tbody.innerHTML="";
+  data.forEach((s,i)=>{
+    tbody.innerHTML+=`
+      <tr class="border-b">
+        <td class="text-center">${i+1}</td>
+        <td class="text-center">${s.service_name}</td>
+        <td class="text-center">${Number(s.unit_price).toLocaleString()}₫</td>
+        <td class="text-center">${s.description??""}</td>
+        <td class="text-center space-x-2">
+          <button onclick='editService(${JSON.stringify(s)})' class="bg-yellow-400 px-2 py-1 rounded">Sửa</button>
+          <button onclick='deleteService(${s.service_id})' class="bg-red-600 text-white px-2 py-1 rounded">Xóa</button>
+        </td>
+      </tr>`;
+  });
+}
+
+function openServiceModal(){document.getElementById("serviceModal").classList.replace("hidden","flex");}
+function closeServiceModal(){document.getElementById("serviceModal").classList.replace("flex","hidden");}
+
+function addService() {
+  document.getElementById("modalServiceTitle").innerText = "Thêm Service";
+  document.getElementById("service_id").value = "";
+  document.getElementById("service_name").value = "";
+  document.getElementById("unit_price").value = "";
+  document.getElementById("service_desc").value = "";
+
+  openServiceModal();
+}
+document.getElementById("btnNewService").addEventListener("click", addService);
+
+function editService(s){
+  document.getElementById("modalServiceTitle").innerText="Sửa Service";
+  document.getElementById("service_id").value=s.service_id;
+  document.getElementById("service_name").value=s.service_name;
+  document.getElementById("unit_price").value=s.unit_price;
+  document.getElementById("service_desc").value=s.description;
+  openServiceModal();
+}
+
+document.getElementById("serviceForm").addEventListener("submit",async e=>{
+  e.preventDefault();
+  const id=document.getElementById("service_id").value;
+  const data={
+    service_name:document.getElementById("service_name").value,
+    unit_price:document.getElementById("unit_price").value,
+    description:document.getElementById("service_desc").value
+  };
+  if(id){
+    await fetch(API_SERVICE+"?id="+id,{method:"PUT",headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+  }else{
+    await fetch(API_SERVICE,{method:"POST",headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+  }
+  closeServiceModal();loadServices();
+});
+
+async function deleteService(id){
+  if(confirm("Xóa service này?")){
+    await fetch(API_SERVICE+"?id="+id,{method:"DELETE"});
+    loadServices();
+  }
+}
+document.addEventListener("DOMContentLoaded",loadServices);
+</script>
+<script>
+  requireAuth().catch(()=>{});
+</script>
+</body>
+</html>

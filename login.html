@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <title>Đăng nhập</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- ÉP API về localhost:8000 TRƯỚC khi load common.js -->
+  <script>
+    // Nếu backend PHP chạy ở http://localhost:8000/hotel/...
+    window.API_BASE = 'http://localhost:8000/hotel/hotel-api-php/src/controllers';
+  </script>
+  <!-- Phá cache + defer để giữ thứ tự -->
+  <script src="/hotel/hotel-frontend/js/common.js?v=1"></script>
+</head>
+<body class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+  <div class="w-full max-w-md px-4">
+    <div class="bg-white/90 backdrop-blur rounded-2xl shadow-xl p-8">
+      <!-- Logo + heading -->
+      <div class="flex items-center gap-3 mb-6 justify-center">
+        <img src="assets/images/logo.png" alt="logo" class="h-10 w-10 object-contain"/>
+        <h1 class="text-2xl font-bold text-gray-800">Hotel Manager</h1>
+      </div>
+
+      <p class="text-sm text-gray-600 mb-6 text-center">
+        Đăng nhập dành cho <b>Admin</b>
+      </p>
+
+      <!-- Form -->
+      <form id="loginForm" class="space-y-4" autocomplete="on">
+        <div>
+          <label class="block text-sm font-medium mb-1">Tài khoản</label>
+          <input id="username" placeholder="Nhập username" required autofocus
+            class="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"/>
+        </div>
+
+        <div>
+          <label class="block text-sm font-medium mb-1">Mật khẩu</label>
+          <input id="password" type="password" placeholder="••••••••" required
+            class="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"/>
+        </div>
+
+        <button id="btnSubmit"
+          class="w-full rounded-lg p-3 font-medium bg-blue-600 text-white hover:bg-blue-700 transition flex items-center justify-center gap-2 disabled:opacity-60 disabled:cursor-not-allowed">
+          <svg id="spinner" class="animate-spin hidden h-4 w-4" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+          </svg>
+          <span>Đăng nhập</span>
+        </button>
+
+        <div id="error" class="text-sm mt-2 text-red-600 hidden"></div>
+      </form>
+
+      <p class="text-center text-xs text-gray-500 mt-4">
+        © <span id="year"></span> Hotel Manager
+      </p>
+    </div>
+  </div>
+
+  <script>
+    function show(el, on=true){ if(!el) return; el.classList[on?'remove':'add']('hidden'); }
+    function setLoading(b){
+      const btn = document.getElementById('btnSubmit');
+      const spinner = document.getElementById('spinner');
+      if (btn) btn.disabled = b;
+      show(spinner, b);
+    }
+    function setErr(text){
+      const err = document.getElementById('error');
+      if(!err) return;
+      err.textContent = text||'';
+      show(err, !!text);
+    }
+
+    document.getElementById('loginForm').addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      setErr(''); setLoading(true);
+
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+      if(!username || !password){
+        setErr('Vui lòng nhập tài khoản và mật khẩu.');
+        setLoading(false); return;
+      }
+
+      try{
+        await api('AuthController.php?action=login', {
+          method:'POST',
+          body: JSON.stringify({ username, password })
+        });
+
+        // Thành công -> về index.html (hoặc ?next= nếu có)
+        const params = new URLSearchParams(location.search);
+        const next = params.get('next');
+        location.href = next || 'index.html';
+
+      }catch(ex){
+        setErr(ex.message || 'Đăng nhập thất bại');
+      }finally{
+        setLoading(false);
+      }
+    });
+
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>

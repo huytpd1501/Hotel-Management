@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <title>Quản lý Sử dụng Dịch vụ</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- (tuỳ môi trường) để common.js gọi đúng API -->
+  <script>window.API_BASE='http://localhost:8000/hotel/hotel-api-php/src/controllers';</script>
+  <script src="/hotel/hotel-frontend/js/common.js?v=7"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+  <div class="flex">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-blue-900 text-white min-h-screen">
+      <div class="p-6 text-2xl font-bold">Hotel Manager</div>
+      <nav class="px-2">
+        <a href="index.html" class="block py-3 px-4 rounded hover:bg-blue-800">Dashboard</a>
+        <a href="rooms.html" class="block py-3 px-4 rounded hover:bg-blue-800">Phòng</a>
+        <a href="services.html" class="block py-3 px-4 rounded hover:bg-blue-800">Dịch vụ</a>
+        <a href="customers.html" class="block py-3 px-4 rounded hover:bg-blue-800">Khách hàng</a>
+        <a href="bookings.html" class="block py-3 px-4 rounded hover:bg-blue-800">Đặt phòng</a>
+        <a href="service_usage.html" class="block py-3 px-4 rounded bg-blue-800 hover:bg-blue-800">Sử dụng dịch vụ</a>
+        <a href="invoices.html" class="block py-3 px-4 rounded hover:bg-blue-800">Hóa đơn</a>
+        <a href="staff.html" class="block py-3 px-4 rounded hover:bg-blue-800">Nhân viên</a>
+      </nav>
+    </aside>
+
+    <!-- Main -->
+    <div class="flex-1">
+      <header class="bg-white shadow">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between h-16 items-center">
+          <div class="flex items-center gap-3">
+            <img src="assets/images/logo.png" alt="Hotel Logo" class="h-10 w-10 object-contain">
+            <div class="text-xl font-bold leading-5">Hotel Manager</div>
+          </div>
+          <div id="header-user" class="flex items-center space-x-2"></div>
+        </div>
+      </header>
+
+      <main class="p-6">
+        <div class="flex justify-between items-center mb-6">
+          <h1 class="text-2xl font-bold">Danh sách sử dụng dịch vụ</h1>
+          <button id="btnNewUsage" class="bg-blue-600 text-white px-4 py-2 rounded-lg">+ Thêm</button>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow overflow-hidden">
+          <table class="min-w-full">
+            <thead class="bg-blue-600 text-white">
+              <tr>
+                <th class="py-3 px-4">STT</th>
+                <th class="py-3 px-4">Booking</th>
+                <th class="py-3 px-4">Dịch vụ</th>
+                <th class="py-3 px-4">Số lượng</th>
+                <th class="py-3 px-4">Ngày dùng</th>
+                <th class="py-3 px-4">Hành động</th>
+              </tr>
+            </thead>
+            <tbody id="usageTableBody" class="text-sm"></tbody>
+          </table>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Modal + Form (bị thiếu trong file cũ) -->
+  <div id="usageModal" class="fixed inset-0 hidden items-center justify-center bg-black/50 z-50">
+    <div class="bg-white p-6 rounded-xl shadow-lg w-full max-w-xl">
+      <div class="flex justify-between items-center mb-4">
+        <h3 id="modalUsageTitle" class="text-lg font-bold">Thêm / Sửa sử dụng dịch vụ</h3>
+        <button id="btnCloseModal" class="text-gray-500">✕</button>
+      </div>
+      <form id="usageForm" class="space-y-3">
+        <input type="hidden" id="usage_id" />
+        <div>
+          <label class="block">Booking</label>
+          <select id="booking_id" class="border p-2 rounded w-full"></select>
+        </div>
+        <div>
+          <label class="block">Dịch vụ</label>
+          <select id="service_id" class="border p-2 rounded w-full"></select>
+        </div>
+        <div>
+          <label class="block">Số lượng</label>
+          <input type="number" id="quantity" class="border p-2 rounded w-full" min="1" required />
+        </div>
+        <div>
+          <label class="block">Ngày dùng</label>
+          <input type="date" id="usage_date" class="border p-2 rounded w-full" required />
+        </div>
+        <div class="flex justify-end gap-2">
+          <button type="button" id="btnCancel" class="px-4 py-2 rounded border">Hủy</button>
+          <button type="submit" class="px-4 py-2 rounded bg-blue-600 text-white">Lưu</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // ===== API endpoints =====
+    const API_USAGE   = "http://localhost:8000/hotel/hotel-api-php/src/controllers/ServiceUsageController.php";
+    const API_BOOKING = "http://localhost:8000/hotel/hotel-api-php/src/controllers/BookingController.php";
+    const API_SERVICE = "http://localhost:8000/hotel/hotel-api-php/src/controllers/ServiceController.php";
+
+    // fetch helper: luôn kèm cookie + báo lỗi rõ ràng
+    async function req(url, opt){
+      opt = opt || {};
+      opt.credentials = 'include';
+      const res = await fetch(url, opt);
+      const ct = res.headers.get('content-type') || '';
+      const data = ct.includes('application/json') ? await res.json().catch(()=> ({})) : await res.text();
+      if(!res.ok){
+        const msg = (typeof data==='string') ? data : (data.error || data.message);
+        throw new Error(msg || ('HTTP '+res.status));
+      }
+      return data;
+    }
+
+    // table
+    async function loadUsages(){
+      try{
+        const data = await req(API_USAGE);
+        const tbody = document.getElementById('usageTableBody');
+        tbody.innerHTML = '';
+        if(!Array.isArray(data) || data.length===0){
+          tbody.innerHTML = '<tr><td colspan="6" class="py-6 text-center text-gray-400">Chưa có sử dụng dịch vụ</td></tr>';
+          return;
+        }
+        data.forEach(function(u,i){
+          tbody.innerHTML +=
+            '<tr class="border-b">'+
+              '<td class="text-center">'+(i+1)+'</td>'+
+              '<td class="text-center">#'+u.booking_id+'</td>'+
+              '<td class="text-center">'+(u.service_name || ('#'+u.service_id))+'</td>'+
+              '<td class="text-center">'+u.quantity+'</td>'+
+              '<td class="text-center">'+u.usage_date+'</td>'+
+              '<td class="text-center space-x-2">'+
+                '<button class="bg-yellow-400 px-2 py-1 rounded" onclick=\'editUsage('+JSON.stringify(u)+')\'>Sửa</button>'+
+                '<button class="bg-red-600 text-white px-2 py-1 rounded" onclick="deleteUsage('+u.usage_id+')">Xóa</button>'+
+              '</td>'+
+            '</tr>';
+        });
+      }catch(e){ alert('Lỗi tải danh sách: '+e.message); }
+    }
+
+    async function loadDropdowns(){
+      const bookings = await req(API_BOOKING);
+      document.getElementById('booking_id').innerHTML =
+        (bookings||[]).map(b => '<option value="'+b.booking_id+'">Booking #'+b.booking_id+'</option>').join('');
+
+      const services = await req(API_SERVICE);
+      document.getElementById('service_id').innerHTML =
+        (services||[]).map(s => '<option value="'+s.service_id+'">'+s.service_name+'</option>').join('');
+    }
+
+    function openUsageModal(){ document.getElementById('usageModal').classList.replace('hidden','flex'); }
+    function closeUsageModal(){ document.getElementById('usageModal').classList.replace('flex','hidden'); }
+
+    // Thêm
+    document.getElementById('btnNewUsage').addEventListener('click', async function(){
+      await loadDropdowns();
+      document.getElementById('modalUsageTitle').innerText='Thêm sử dụng DV';
+      document.getElementById('usage_id').value='';
+      document.getElementById('quantity').value='1';
+      document.getElementById('usage_date').value = new Date().toISOString().slice(0,10);
+      openUsageModal();
+    });
+
+    // Sửa
+    function editUsage(u){
+      document.getElementById('modalUsageTitle').innerText='Sửa sử dụng DV';
+      document.getElementById('usage_id').value=u.usage_id;
+      document.getElementById('booking_id').value=u.booking_id;
+      document.getElementById('service_id').value=u.service_id;
+      document.getElementById('quantity').value=u.quantity;
+      document.getElementById('usage_date').value=u.usage_date;
+      openUsageModal();
+    }
+
+    // Lưu
+    document.getElementById('usageForm').addEventListener('submit', async function(e){
+      e.preventDefault();
+      const id = document.getElementById('usage_id').value;
+      const body = {
+        booking_id: document.getElementById('booking_id').value,
+        service_id: document.getElementById('service_id').value,
+        quantity:   document.getElementById('quantity').value,
+        usage_date: document.getElementById('usage_date').value
+      };
+
+      try{
+        if(id){
+          await req(API_USAGE+'?id='+encodeURIComponent(id), {
+            method:'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)
+          });
+        }else{
+          await req(API_USAGE, {
+            method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)
+          });
+        }
+      }catch(_){
+        // fallback nếu BE không đọc JSON
+        const form = new URLSearchParams(body).toString();
+        if(id){
+          await req(API_USAGE+'?id='+encodeURIComponent(id), {
+            method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'},
+            body: form + '&_method=PUT'
+          });
+        }else{
+          await req(API_USAGE, {
+            method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body: form
+          });
+        }
+      }
+
+      closeUsageModal();
+      loadUsages();
+    });
+
+    // Xoá
+    async function deleteUsage(id){
+      if(!confirm('Xóa sử dụng dịch vụ này?')) return;
+      try{
+        await req(API_USAGE+'?id='+encodeURIComponent(id), { method:'DELETE' });
+      }catch(_){
+        await req(API_USAGE+'?id='+encodeURIComponent(id), {
+          method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:'_method=DELETE'
+        });
+      }
+      loadUsages();
+    }
+
+    // Đóng modal
+    document.getElementById('btnCloseModal').addEventListener('click', closeUsageModal);
+    document.getElementById('btnCancel').addEventListener('click', closeUsageModal);
+
+    // Khởi động
+    document.addEventListener('DOMContentLoaded', function(){
+      // ép đăng nhập + render header
+      requireAuth().then(loadUsages).catch(function(){});
+    });
+  </script>
+</body>
+</html>

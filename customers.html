@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <title>Quản lý Khách hàng</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="js/common.js"></script>
+
+</head>
+<body class="bg-gray-100 min-h-screen">
+  <div class="flex">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-blue-900 text-white min-h-screen">
+      <div class="p-6 text-2xl font-bold">Hotel Manager</div>
+      <nav class="px-2">
+        <a href="index.html" class="block py-3 px-4 rounded hover:bg-blue-800">Dashboard</a>
+        <a href="rooms.html" class="block py-3 px-4 rounded hover:bg-blue-800">Phòng</a>
+        <a href="services.html" class="block py-3 px-4 rounded hover:bg-blue-800">Dịch vụ</a>
+        <a href="customers.html" class="block py-3 px-4 rounded bg-blue-800">Khách hàng</a>
+        <a href="bookings.html" class="block py-3 px-4 rounded hover:bg-blue-800">Đặt phòng</a>
+         <a href="service_usage.html" class="block py-3 px-4 rounded hover:bg-blue-800">Sử dụng dịch vụ</a>
+        <a href="invoices.html" class="block py-3 px-4 rounded hover:bg-blue-800">Hóa đơn</a>
+        <a href="staff.html" class="block py-3 px-4 rounded bg-blue-800">Nhân viên</a>
+      </nav>
+    </aside>
+
+    <!-- Content -->
+    <div class="flex-1">
+      <header class="bg-white shadow">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="flex justify-between h-16 items-center">
+            <div class="flex items-center space-x-3">
+              <img src="assets/images/logo.png" alt="logo" class="h-10 w-10 object-contain"/>
+              <div class="text-xl font-bold">Hotel Manager</div>
+            </div>
+            <div id="header-user" class="flex items-center space-x-2"></div>
+          </div>
+        </div>
+      </header>
+
+      <main class="p-6">
+        <div class="flex justify-between items-center mb-6">
+          <h1 class="text-2xl font-bold">Danh sách khách hàng</h1>
+          <button id="btnNewCustomer" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700">+ Thêm khách</button>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow overflow-hidden">
+          <table class="min-w-full text-sm">
+            <thead class="bg-blue-600 text-white">
+              <tr>
+                <th class="py-3 px-4 text-center">STT</th>
+                <th class="py-3 px-4 text-center">Tên khách hàng</th>
+                <th class="py-3 px-4 text-center">Giới tính</th>
+                <th class="py-3 px-4 text-center">SĐT</th>
+                <th class="py-3 px-4 text-center">Email</th>
+                <th class="py-3 px-4 text-center">CCCD</th>
+                <th class="py-3 px-4 text-center">Địa chỉ</th>
+                <th class="py-3 px-4 text-center">Hành động</th>
+              </tr>
+            </thead>
+            <tbody id="customerTableBody"></tbody>
+          </table>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div id="customerModal" class="fixed inset-0 hidden items-center justify-center z-50">
+    <div class="absolute inset-0 bg-black bg-opacity-50"></div>
+    <div class="bg-white rounded-lg shadow-lg max-w-xl w-full z-10 p-6">
+      <div class="flex justify-between items-center mb-4">
+        <h3 id="modalTitle" class="text-lg font-semibold">Thêm khách hàng</h3>
+        <button id="customerModalClose" class="text-gray-500">✕</button>
+      </div>
+      <form id="customerForm">
+        <input type="hidden" id="customer_id" name="customer_id" />
+        <div class="grid grid-cols-1 gap-3">
+          <input id="name" name="full_name" class="border p-2 rounded" placeholder="Tên khách hàng" required />
+          <select id="gender" name="gender" class="border p-2 rounded">
+            <option value="Nam">Nam</option>
+            <option value="Nữ">Nữ</option>
+          </select>
+          <input id="phone" name="phone_number" class="border p-2 rounded" placeholder="Số điện thoại" required />
+          <input id="email" name="email" type="email" class="border p-2 rounded" placeholder="Email" required />
+          <input id="idCard" name="id_card" class="border p-2 rounded" placeholder="CMND" required />
+          <input id="address" name="address" class="border p-2 rounded" placeholder="Địa chỉ" />
+          <div class="flex justify-end space-x-2 mt-3">
+            <button type="button" id="customerModalCloseBottom" class="px-4 py-2 rounded border">Hủy</button>
+            <button type="submit" class="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700">Lưu</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+<script>
+const API = "http://localhost:8000/hotel/hotel-api-php/src/controllers/CustomerController.php";
+
+
+async function loadCustomers() {
+  const res = await fetch(API);
+  const data = await res.json();
+  const tbody = document.getElementById("customerTableBody");
+  tbody.innerHTML = "";
+  data.forEach((c, i) => {
+    tbody.innerHTML += `
+      <tr class="border-b">
+        <td class="py-2 px-3 text-center">${i + 1}</td>
+        <td class="py-2 px-3 text-center">${c.full_name}</td>
+        <td class="py-2 px-3 text-center">${c.gender}</td>
+        <td class="py-2 px-3 text-center">${c.phone_number}</td>
+        <td class="py-2 px-3 text-center">${c.email}</td>
+        <td class="py-2 px-3 text-center">${c.id_card}</td>
+        <td class="py-2 px-3 text-center">${c.address ?? ""}</td>
+        <td class="py-2 px-3 text-center space-x-2">
+          <button onclick='editCustomer(${JSON.stringify(c)})' class="bg-yellow-400 px-2 py-1 rounded">Sửa</button>
+          <button onclick='deleteCustomer(${c.customer_id})' class="bg-red-600 text-white px-2 py-1 rounded">Xóa</button>
+        </td>
+      </tr>
+    `;
+  });
+}
+
+// Open modal to add customer
+document.getElementById("btnNewCustomer").addEventListener("click", () => {
+  document.getElementById("modalTitle").innerText = "Thêm khách hàng";
+  document.getElementById("customer_id").value = "";
+  document.getElementById("name").value = "";
+  document.getElementById("gender").value = "Nam"; // Default gender
+  document.getElementById("phone").value = "";
+  document.getElementById("email").value = "";
+  document.getElementById("idCard").value = "";
+  document.getElementById("address").value = "";
+  document.getElementById("customerModal").classList.remove("hidden");
+  document.getElementById("customerModal").classList.add("flex");
+});
+
+// Edit customer function
+function editCustomer(c) {
+  document.getElementById("modalTitle").innerText = "Sửa khách hàng";
+  document.getElementById("customer_id").value = c.customer_id;
+  document.getElementById("name").value = c.full_name;
+  document.getElementById("gender").value = c.gender;
+  document.getElementById("phone").value = c.phone_number;
+  document.getElementById("email").value = c.email;
+  document.getElementById("idCard").value = c.id_card;
+  document.getElementById("address").value = c.address;
+  document.getElementById("customerModal").classList.remove("hidden");
+  document.getElementById("customerModal").classList.add("flex");
+}
+
+// Close modal function
+function closeModal(){
+  document.getElementById("customerModal").classList.add("hidden");
+  document.getElementById("customerModal").classList.remove("flex");
+}
+document.getElementById("customerModalClose").addEventListener("click", closeModal);
+document.getElementById("customerModalCloseBottom").addEventListener("click", closeModal);
+
+// Add / edit customer
+document.getElementById("customerForm").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const id = document.getElementById("customer_id").value;
+  const data = {
+    full_name: document.getElementById("name").value,
+    gender: document.getElementById("gender").value,
+    phone_number: document.getElementById("phone").value,
+    email: document.getElementById("email").value,
+    id_card: document.getElementById("idCard").value,
+    address: document.getElementById("address").value
+  };
+
+  if(id){
+    await fetch(API + "?id=" + id, {
+      method:"PUT",
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(data)
+    });
+  } else {
+    await fetch(API, {
+      method:"POST",
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(data)
+    });
+  }
+  closeModal();
+  loadCustomers();
+});
+
+// Delete customer
+async function deleteCustomer(id){
+  if(!confirm("Xóa khách hàng này?")) return;
+  await fetch(API+"?id="+id, {method:"DELETE"});
+  loadCustomers();
+}
+
+document.addEventListener("DOMContentLoaded", loadCustomers);
+</script>
+<script>
+  requireAuth().catch(()=>{});
+</script>
+</body>
+</html>

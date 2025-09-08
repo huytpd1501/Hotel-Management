@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <title>Quản lý Phòng</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Nếu backend chạy port 8000 thì set API_BASE (tùy môi trường bạn) -->
+  <script>window.API_BASE='http://localhost:8000/hotel/hotel-api-php/src/controllers';</script>
+  <!-- DÙNG ĐƯỜNG DẪN TUYỆT ĐỐI để chắc chắn tải đúng common.js -->
+  <script src="/hotel/hotel-frontend/js/common.js?v=4"></script>
+</head>
+<body class="bg-gray-100 min-h-screen">
+  <div class="flex">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-blue-900 text-white min-h-screen">
+      <div class="p-6 text-2xl font-bold">Hotel Manager</div>
+      <nav class="px-2">
+        <a href="index.html" class="block py-3 px-4 rounded hover:bg-blue-800">Dashboard</a>
+        <a href="rooms.html" class="block py-3 px-4 rounded bg-blue-800">Phòng</a>
+        <a href="services.html" class="block py-3 px-4 rounded hover:bg-blue-800">Dịch vụ</a>
+        <a href="customers.html" class="block py-3 px-4 rounded hover:bg-blue-800">Khách hàng</a>
+        <a href="bookings.html" class="block py-3 px-4 rounded hover:bg-blue-800">Đặt phòng</a>
+        <a href="service_usage.html" class="block py-3 px-4 rounded hover:bg-blue-800">Sử dụng dịch vụ</a>
+        <a href="invoices.html" class="block py-3 px-4 rounded hover:bg-blue-800">Hóa đơn</a>
+        <a href="staff.html" class="block py-3 px-4 rounded hover:bg-blue-800">Nhân viên</a>
+      </nav>
+    </aside>
+
+    <!-- Content -->
+    <div class="flex-1">
+      <header class="bg-white shadow">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div class="flex justify-between h-16 items-center">
+            <div class="flex items-center space-x-3">
+              <img src="assets/images/logo.png" alt="logo" class="h-10 w-10 object-contain"/>
+              <div class="text-xl font-bold">Hotel Manager</div>
+            </div>
+            <!-- Slot để common.js render: Admin | Đăng xuất -->
+            <div id="header-user" class="flex items-center space-x-2"></div>
+          </div>
+        </div>
+      </header>
+
+      <main class="p-6">
+        <div class="flex justify-between items-center mb-6">
+          <h1 class="text-2xl font-bold">Danh sách phòng</h1>
+          <button id="btnNewRoom" class="bg-blue-600 text-white px-4 py-2 rounded-lg">+ Thêm phòng</button>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow overflow-hidden mb-8">
+          <table class="min-w-full text-sm">
+            <thead class="bg-blue-600 text-white">
+              <tr>
+                <th class="py-3 px-4 text-center">STT</th>
+                <th class="py-3 px-4 text-center">Số phòng</th>
+                <th class="py-3 px-4 text-center">Loại</th>
+                <th class="py-3 px-4 text-center">Trạng thái</th>
+                <th class="py-3 px-4 text-center">Giá/đêm</th>
+                <th class="py-3 px-4 text-center">Mô tả</th>
+                <th class="py-3 px-4 text-center">Hành động</th>
+              </tr>
+            </thead>
+            <tbody id="roomTableBody"></tbody>
+          </table>
+        </div>
+
+        <!-- ẢNH 3 LOẠI PHÒNG -->
+        <h2 class="text-xl font-bold mb-3">Hình ảnh phòng</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <figure class="bg-white rounded shadow overflow-hidden">
+            <img src="assets/images/rooms/VIP.png" alt="Phòng VIP" class="w-full h-56 object-cover">
+            <figcaption class="p-2 text-center font-semibold">Phòng VIP</figcaption>
+          </figure>
+          <figure class="bg-white rounded shadow overflow-hidden">
+            <img src="assets/images/rooms/Deluxe.png" alt="Phòng Deluxe" class="w-full h-56 object-cover">
+            <figcaption class="p-2 text-center font-semibold">Phòng Deluxe</figcaption>
+          </figure>
+          <figure class="bg-white rounded shadow overflow-hidden">
+            <img src="assets/images/rooms/Standard.png" alt="Phòng Standard" class="w-full h-56 object-cover">
+            <figcaption class="p-2 text-center font-semibold">Phòng Standard</figcaption>
+          </figure>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div id="roomModal" class="fixed inset-0 hidden items-center justify-center z-50">
+    <div class="absolute inset-0 bg-black bg-opacity-50"></div>
+    <div class="bg-white rounded-lg shadow-lg max-w-xl w-full z-10 p-6">
+      <div class="flex justify-between items-center mb-4">
+        <h3 id="modalTitle" class="text-lg font-semibold">Thêm phòng</h3>
+        <button id="roomModalClose" class="text-gray-500">✕</button>
+      </div>
+      <form id="roomForm">
+        <input type="hidden" id="room_id" />
+        <div class="grid grid-cols-1 gap-3">
+          <input id="room_number" class="border p-2 rounded" placeholder="Số phòng" required />
+          <input id="room_type" class="border p-2 rounded" placeholder="Loại phòng (Deluxe/Standard/VIP)" required />
+          <input id="price_per_night" type="number" class="border p-2 rounded" placeholder="Giá/đêm" required />
+          <select id="status" class="border p-2 rounded">
+            <option value="AVAILABLE">AVAILABLE</option>
+            <option value="BOOKED">BOOKED</option>
+            <option value="IN_USE">IN_USE</option>
+          </select>
+          <textarea id="description" class="border p-2 rounded" placeholder="Mô tả"></textarea>
+          <div class="flex justify-end space-x-2">
+            <button type="button" id="roomModalCloseBottom" class="px-4 py-2 rounded border">Hủy</button>
+            <button type="submit" class="px-4 py-2 rounded bg-blue-600 text-white">Lưu</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+<script>
+  // API Rooms
+  var API = "http://localhost:8000/hotel/hotel-api-php/src/controllers/RoomController.php";
+
+  async function loadRooms() {
+    const res = await fetch(API, { credentials: 'include' });
+    const data = await res.json();
+    const tbody = document.getElementById("roomTableBody");
+    tbody.innerHTML = "";
+    data.forEach(function(r, i){
+      tbody.innerHTML +=
+        '<tr class="border-b">'+
+          '<td class="py-2 px-3 text-center">'+(i+1)+'</td>'+
+          '<td class="py-2 px-3 text-center">'+r.room_number+'</td>'+
+          '<td class="py-2 px-3 text-center">'+r.room_type+'</td>'+
+          '<td class="py-2 px-3 text-center">'+r.status+'</td>'+
+          '<td class="py-2 px-3 text-center">'+Number(r.price_per_night).toLocaleString()+'₫</td>'+
+          '<td class="py-2 px-3 text-center">'+(r.description || '')+'</td>'+
+          '<td class="py-2 px-3 text-center space-x-2">'+
+            '<button onclick=\'editRoom('+JSON.stringify(r)+')\' class="bg-yellow-400 px-2 py-1 rounded">Sửa</button>'+
+            '<button onclick="deleteRoom('+r.room_id+')" class="bg-red-600 text-white px-2 py-1 rounded">Xóa</button>'+
+          '</td>'+
+        '</tr>';
+    });
+  }
+
+  // mở modal
+  document.getElementById("btnNewRoom").addEventListener("click", function(){
+    document.getElementById("modalTitle").innerText = "Thêm phòng";
+    document.getElementById("room_id").value = "";
+    document.getElementById("room_number").value = "";
+    document.getElementById("room_type").value = "";
+    document.getElementById("price_per_night").value = "";
+    document.getElementById("status").value = "AVAILABLE";
+    document.getElementById("description").value = "";
+    document.getElementById("roomModal").classList.remove("hidden");
+    document.getElementById("roomModal").classList.add("flex");
+  });
+
+  // đóng modal
+  function closeModal(){
+    document.getElementById("roomModal").classList.add("hidden");
+    document.getElementById("roomModal").classList.remove("flex");
+  }
+  document.getElementById("roomModalClose").addEventListener("click", closeModal);
+  document.getElementById("roomModalCloseBottom").addEventListener("click", closeModal);
+
+  // edit
+  function editRoom(r){
+    document.getElementById("modalTitle").innerText = "Sửa phòng";
+    document.getElementById("room_id").value = r.room_id;
+    document.getElementById("room_number").value = r.room_number;
+    document.getElementById("room_type").value = r.room_type;
+    document.getElementById("price_per_night").value = r.price_per_night;
+    document.getElementById("status").value = r.status;
+    document.getElementById("description").value = r.description || '';
+    document.getElementById("roomModal").classList.remove("hidden");
+    document.getElementById("roomModal").classList.add("flex");
+  }
+
+  // save
+  document.getElementById("roomForm").addEventListener("submit", async function(e){
+    e.preventDefault();
+    const id = document.getElementById("room_id").value;
+    const data = {
+      room_number: document.getElementById("room_number").value,
+      room_type: document.getElementById("room_type").value,
+      price_per_night: document.getElementById("price_per_night").value,
+      status: document.getElementById("status").value,
+      description: document.getElementById("description").value
+    };
+
+    if(id){
+      await fetch(API + "?id="+encodeURIComponent(id), {
+        method:"PUT",
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify(data),
+        credentials: 'include'
+      });
+    } else {
+      await fetch(API, {
+        method:"POST",
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify(data),
+        credentials: 'include'
+      });
+    }
+    closeModal();
+    loadRooms();
+  });
+
+  // delete
+  async function deleteRoom(id){
+    if(!confirm("Xóa phòng này?")) return;
+    await fetch(API+"?id="+encodeURIComponent(id), {method:"DELETE", credentials:'include'});
+    loadRooms();
+  }
+
+  // Đồng bộ reload
+  window.addEventListener('storage', function(e){
+    if (e.key === 'ROOMS_SHOULD_REFRESH') loadRooms();
+  });
+  window.addEventListener('focus', loadRooms);
+
+  document.addEventListener("DOMContentLoaded", function(){
+    // render header từ cache (nếu có) để đỡ giật
+    try { var raw = localStorage.getItem('auth_user'); if (raw) renderHeaderUser(JSON.parse(raw)); } catch(e){}
+    // chặn chưa login + chính thức render header từ session
+    requireAuth().then(loadRooms).catch(function(){});
+  });
+</script>
+</body>
+</html>

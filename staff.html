@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <title>Quản lý Nhân viên</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="js/common.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen text-gray-800">
+  <div class="flex">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-blue-900 text-white min-h-screen">
+      <div class="p-6 text-2xl font-bold">Hotel Manager</div>
+      <nav class="px-2">
+        <a href="index.html"         class="block py-3 px-4 rounded hover:bg-blue-800">Dashboard</a>
+        <a href="rooms.html"         class="block py-3 px-4 rounded hover:bg-blue-800">Phòng</a>
+        <a href="services.html"      class="block py-3 px-4 rounded hover:bg-blue-800">Dịch vụ</a>
+        <a href="customers.html"     class="block py-3 px-4 rounded hover:bg-blue-800">Khách hàng</a>
+        <a href="bookings.html"      class="block py-3 px-4 rounded hover:bg-blue-800">Đặt phòng</a>
+        <a href="service_usage.html" class="block py-3 px-4 rounded hover:bg-blue-800">Sử dụng dịch vụ</a>
+        <a href="invoices.html"      class="block py-3 px-4 rounded hover:bg-blue-800">Hóa đơn</a>
+        <a href="staff.html"         class="block py-3 px-4 rounded bg-blue-800">Nhân viên</a>
+      </nav>
+    </aside>
+
+    <!-- Content -->
+    <div class="flex-1">
+      <!-- Header -->
+      <header class="bg-white shadow">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between h-16 items-center">
+          <div class="flex items-center gap-3">
+            <img src="assets/images/logo.png" alt="Hotel Logo" class="h-10 w-10 object-contain">
+            <div class="text-xl font-bold">Hotel Manager</div>
+          </div>
+          <div id="header-user" class="flex items-center space-x-2"></div>
+        </div>
+      </header>
+
+      <!-- Main -->
+      <main class="p-6">
+        <div class="flex justify-between items-center mb-6">
+          <h1 class="text-2xl font-bold">Danh sách nhân viên</h1>
+          <button id="btnNew"
+            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg shadow">
+            + Thêm nhân viên
+          </button>
+        </div>
+
+        <!-- Table wrapper -->
+        <div class="bg-white rounded-2xl overflow-hidden shadow">
+          <table class="min-w-full text-sm">
+            <thead class="bg-blue-600 text-white">
+              <tr>
+                <th class="py-3 px-4 text-left">STT</th>
+                <th class="py-3 px-4 text-left">Họ tên</th>
+                <th class="py-3 px-4 text-left">Username</th>
+                <th class="py-3 px-4 text-left">Email</th>
+                <th class="py-3 px-4 text-left">Phone</th>
+                <th class="py-3 px-4 text-left">Vai trò</th>
+                <th class="py-3 px-4 text-left">Hành động</th>
+              </tr>
+            </thead>
+            <tbody id="tbody" class="divide-y divide-gray-200">
+              <!-- rows -->
+            </tbody>
+          </table>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- Modal Add/Edit -->
+  <div id="modal" class="fixed inset-0 hidden items-center justify-center z-50">
+    <div class="absolute inset-0 bg-black/50"></div>
+    <div class="relative bg-white rounded-xl shadow-xl w-full max-w-lg p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h3 id="modalTitle" class="text-lg font-semibold">Thêm nhân viên</h3>
+        <button onclick="closeModal()" class="text-gray-400 hover:text-gray-700">✕</button>
+      </div>
+
+      <!-- Form thêm -->
+      <form id="formAdd" class="grid gap-3">
+        <input id="add_full_name" class="border p-3 rounded w-full" placeholder="Họ tên" required />
+        <input id="add_username"   class="border p-3 rounded w-full" placeholder="Username" required />
+        <input id="add_password"   type="password" class="border p-3 rounded w-full" placeholder="Mật khẩu (tạo mới)" required />
+        <input id="add_email"      type="email" class="border p-3 rounded w-full" placeholder="Email" />
+        <input id="add_phone"      class="border p-3 rounded w-full" placeholder="Số điện thoại" />
+        <div class="flex justify-end gap-2 mt-2">
+          <button type="button" onclick="closeModal()" class="px-4 py-2 rounded border">Hủy</button>
+          <button class="px-4 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white">Lưu</button>
+        </div>
+      </form>
+
+      <!-- Form sửa -->
+      <form id="formEdit" class="grid gap-3 hidden">
+        <input id="edit_full_name" class="border p-3 rounded w-full" placeholder="Họ tên" required />
+        <input id="edit_email"     type="email" class="border p-3 rounded w-full" placeholder="Email" />
+        <input id="edit_phone"     class="border p-3 rounded w-full" placeholder="Số điện thoại" />
+        <div class="flex justify-end gap-2 mt-2">
+          <button type="button" onclick="closeModal()" class="px-4 py-2 rounded border">Hủy</button>
+          <button class="px-4 py-2 rounded bg-blue-600 hover:bg-blue-700 text-white">Cập nhật</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+<script>
+const API_STAFF = 'StaffController.php';
+let editingId = null;
+
+function openModal(mode='add'){
+  document.getElementById('modalTitle').innerText = mode==='add' ? 'Thêm nhân viên' : 'Sửa nhân viên';
+  document.getElementById('formAdd').classList.toggle('hidden', mode!=='add');
+  document.getElementById('formEdit').classList.toggle('hidden', mode!=='edit');
+  document.getElementById('modal').classList.remove('hidden');
+  document.getElementById('modal').classList.add('flex');
+}
+function closeModal(){
+  document.getElementById('modal').classList.add('hidden');
+  document.getElementById('modal').classList.remove('flex');
+  document.getElementById('formAdd').reset();
+  document.getElementById('formEdit').reset();
+  editingId = null;
+}
+
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,(m)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));}
+
+async function loadStaff(){
+  const rows = await api(API_STAFF);
+  const tb = document.getElementById('tbody');
+  tb.innerHTML = (rows||[]).map((r,i)=>`
+    <tr class="hover:bg-gray-50" data-id="${r.staff_id||''}">
+      <td class="py-3 px-4">${i+1}</td>
+      <td class="py-3 px-4" data-col="full_name">${escapeHtml(r.full_name||'')}</td>
+      <td class="py-3 px-4">${escapeHtml(r.username||'')}</td>
+      <td class="py-3 px-4" data-col="email">${escapeHtml(r.email||'')}</td>
+      <td class="py-3 px-4" data-col="phone_number">${escapeHtml(r.phone_number||'')}</td>
+      <td class="py-3 px-4">${escapeHtml(r.account_role||r.role||'')}</td>
+      <td class="py-3 px-4">
+        <div class="flex items-center gap-2">
+          <button class="px-3 py-1 rounded bg-yellow-400 text-gray-900 hover:bg-yellow-300 js-edit">Sửa</button>
+          <button class="px-3 py-1 rounded bg-red-600 text-white hover:bg-red-500 js-del">Xóa</button>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+}
+
+document.getElementById('btnNew').addEventListener('click', ()=> openModal('add'));
+
+document.getElementById('tbody').addEventListener('click', async (e)=>{
+  const tr = e.target.closest('tr[data-id]');
+  if(!tr) return;
+  const id = tr.getAttribute('data-id');
+  if(e.target.classList.contains('js-edit')){
+    editingId = id;
+    document.getElementById('edit_full_name').value = tr.querySelector('[data-col="full_name"]').textContent.trim();
+    document.getElementById('edit_email').value     = tr.querySelector('[data-col="email"]').textContent.trim();
+    document.getElementById('edit_phone').value     = tr.querySelector('[data-col="phone_number"]').textContent.trim();
+    openModal('edit');
+  }
+  if(e.target.classList.contains('js-del')){
+    if(confirm('Xóa nhân viên này?')){
+      const res = await api(API_STAFF+'?id='+id, {method:'DELETE'});
+      if(res.success) loadStaff(); else alert(res.message||'Xóa thất bại');
+    }
+  }
+});
+
+document.getElementById('formAdd').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  const payload = {
+    full_name: document.getElementById('add_full_name').value.trim(),
+    username : document.getElementById('add_username').value.trim(),
+    password : document.getElementById('add_password').value,
+    email    : document.getElementById('add_email').value.trim(),
+    phone_number: document.getElementById('add_phone').value.trim()
+  };
+  const res = await api(API_STAFF, {method:'POST', body: JSON.stringify(payload)});
+  if(res.success){ closeModal(); loadStaff(); } else { alert(res.message||'Lỗi'); }
+});
+
+document.getElementById('formEdit').addEventListener('submit', async (e)=>{
+  e.preventDefault();
+  if(!editingId) return;
+  const payload = {
+    full_name   : document.getElementById('edit_full_name').value.trim(),
+    email       : document.getElementById('edit_email').value.trim(),
+    phone_number: document.getElementById('edit_phone').value.trim()
+  };
+  const res = await api(API_STAFF+'?id='+editingId, {method:'PUT', body: JSON.stringify(payload)});
+  if(res.success){ closeModal(); loadStaff(); } else { alert(res.message||'Lỗi'); }
+});
+
+document.addEventListener('DOMContentLoaded', loadStaff);
+</script>
+<script>
+  requireAuth().catch(()=>{});
+</script>
+</body>
+</html>
