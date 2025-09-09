@@ -1,6 +1,7 @@
 Đây là một ứng dụng quản lý khách sạn thân thiện với người dùng. Ứng dụng này được thiết kế để quản lý hoạt động của khách sạn, bao gồm thống kê bán hàng, quản lý phòng, quản lý khách hàng, quản lý đặt phòng, quản lý dịch vụ, quản lý khách hàng sử dụng dịch vụ, quản lý nhân viên và các tùy chọn tùy chỉnh khác nhau. Nó tích hợp tính năng xác thực, lưu trữ cơ sở dữ liệu.
 
 🎮 Tài khoản DEMO
+
 Bạn có thể truy cập ứng dụng thông qua tài khoản sau:
 Tài khoản: admin
 Mật khẩu: 123456
@@ -74,6 +75,7 @@ Trang Nhân viên
 <img width="1918" height="926" alt="image" src="https://github.com/user-attachments/assets/9f4dedde-23d1-413a-99f5-fd4f947dc1e6" />
 
 Deployed Version 🚀
+
 Live demo 👉🏻 : http://nhom7.itimit.id.vn/hotel/login.html
 
 
