@@ -1,9 +1,9 @@
 <?php
 class Database {
   private $host = "localhost";
-  private $db_name = "hotel_db";
-  private $username = "root";
-  private $password = "";
+  private $db_name = "sql_nhom7_itimit";
+  private $username = "sql_nhom7_itimit";
+  private $password = "c54e874fb2a84";
   public $conn;
 
   public function getConnection() {

@@ -1,5 +1,8 @@
 
-const BASE = "http://localhost:8000/hotel/hotel-api-php/src/controllers";
+const BASE = (function(){
+  let origin = location.origin;
+  return origin + "/hotel/hotel-api-php/src/controllers";
+})();
 
 async function apiGet(entity) {
   const res = await fetch(`${BASE}/${entity}Controller.php`);

@@ -5,7 +5,7 @@
   <title>Quản lý Dịch vụ</title>
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="js/common.js"></script>
+  <script src="common.js"></script>
 
 </head>
 <body class="bg-gray-100 min-h-screen">
@@ -31,7 +31,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div class="flex justify-between h-16 items-center">
             <div class="flex items-center space-x-3">
-              <img src="assets/images/logo.png" alt="logo" class="h-10 w-10 object-contain"/>
+              <img src="logo.png" alt="logo" class="h-10 w-10 object-contain"/>
               <div class="text-xl font-bold">Hotel Manager</div>
             </div>
             <div id="header-user" class="flex items-center space-x-2"></div>
@@ -64,19 +64,19 @@
 <h2 class="text-xl font-bold mb-3">Hình ảnh dịch vụ</h2>
   <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
     <figure class="bg-white rounded shadow overflow-hidden">
-      <img src="assets/images/services/Breakfast.png" alt="Ăn sáng buffet" class="w-full h-44 object-cover">
+      <img src="Breakfast.png" alt="Ăn sáng buffet" class="w-full h-44 object-cover">
       <figcaption class="p-2 text-center font-semibold">Ăn sáng buffet</figcaption>
     </figure>
     <figure class="bg-white rounded shadow overflow-hidden">
-      <img src="assets/images/services/Spa.png" alt="Spa" class="w-full h-44 object-cover">
+      <img src="Spa.png" alt="Spa" class="w-full h-44 object-cover">
       <figcaption class="p-2 text-center font-semibold">Spa</figcaption>
     </figure>
     <figure class="bg-white rounded shadow overflow-hidden">
-      <img src="assets/images/services/Airport.png" alt="Đưa đón sân bay" class="w-full h-44 object-cover">
+      <img src="Airport.png" alt="Đưa đón sân bay" class="w-full h-44 object-cover">
       <figcaption class="p-2 text-center font-semibold">Đưa đón sân bay</figcaption>
     </figure>
     <figure class="bg-white rounded shadow overflow-hidden">
-      <img src="assets/images/services/Dinner.png" alt="Ăn tối buffet" class="w-full h-44 object-cover">
+      <img src="Dinner.png" alt="Ăn tối buffet" class="w-full h-44 object-cover">
       <figcaption class="p-2 text-center font-semibold">Ăn tối buffet</figcaption>
     </figure>
   </div>
@@ -101,7 +101,7 @@
 </div>
 
 <script>
-const API_SERVICE="http://localhost:8000/hotel/hotel-api-php/src/controllers/ServiceController.php";
+const API_SERVICE="http://nhom7.itimit.id.vn/hotel/hotel-api-php/src/controllers/ServiceController.php";
 
 async function loadServices(){
   const res=await fetch(API_SERVICE);

@@ -5,7 +5,7 @@
   <title>Quản lý Khách hàng</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="js/common.js"></script>
+  <script src="common.js"></script>
 
 </head>
 <body class="bg-gray-100 min-h-screen">
@@ -31,7 +31,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div class="flex justify-between h-16 items-center">
             <div class="flex items-center space-x-3">
-              <img src="assets/images/logo.png" alt="logo" class="h-10 w-10 object-contain"/>
+              <img src="logo.png" alt="logo" class="h-10 w-10 object-contain"/>
               <div class="text-xl font-bold">Hotel Manager</div>
             </div>
             <div id="header-user" class="flex items-center space-x-2"></div>
@@ -96,7 +96,7 @@
   </div>
 
 <script>
-const API = "http://localhost:8000/hotel/hotel-api-php/src/controllers/CustomerController.php";
+const API = "http://nhom7.itimit.id.vn/hotel/hotel-api-php/src/controllers/CustomerController.php";
 
 
 async function loadCustomers() {

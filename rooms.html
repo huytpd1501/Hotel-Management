@@ -7,9 +7,9 @@
   <script src="https://cdn.tailwindcss.com"></script>
 
   <!-- Nếu backend chạy port 8000 thì set API_BASE (tùy môi trường bạn) -->
-  <script>window.API_BASE='http://localhost:8000/hotel/hotel-api-php/src/controllers';</script>
+  <script>window.API_BASE='http://nhom7.itimit.id.vn/hotel/hotel-api-php/src/controllers';</script>
   <!-- DÙNG ĐƯỜNG DẪN TUYỆT ĐỐI để chắc chắn tải đúng common.js -->
-  <script src="/hotel/hotel-frontend/js/common.js?v=4"></script>
+  <script src="common.js"></script>
 </head>
 <body class="bg-gray-100 min-h-screen">
   <div class="flex">
@@ -34,7 +34,7 @@
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div class="flex justify-between h-16 items-center">
             <div class="flex items-center space-x-3">
-              <img src="assets/images/logo.png" alt="logo" class="h-10 w-10 object-contain"/>
+              <img src="logo.png" alt="logo" class="h-10 w-10 object-contain"/>
               <div class="text-xl font-bold">Hotel Manager</div>
             </div>
             <!-- Slot để common.js render: Admin | Đăng xuất -->
@@ -70,15 +70,15 @@
         <h2 class="text-xl font-bold mb-3">Hình ảnh phòng</h2>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <figure class="bg-white rounded shadow overflow-hidden">
-            <img src="assets/images/rooms/VIP.png" alt="Phòng VIP" class="w-full h-56 object-cover">
+            <img src="VIP.png" alt="Phòng VIP" class="w-full h-56 object-cover">
             <figcaption class="p-2 text-center font-semibold">Phòng VIP</figcaption>
           </figure>
           <figure class="bg-white rounded shadow overflow-hidden">
-            <img src="assets/images/rooms/Deluxe.png" alt="Phòng Deluxe" class="w-full h-56 object-cover">
+            <img src="Deluxe.png" alt="Phòng Deluxe" class="w-full h-56 object-cover">
             <figcaption class="p-2 text-center font-semibold">Phòng Deluxe</figcaption>
           </figure>
           <figure class="bg-white rounded shadow overflow-hidden">
-            <img src="assets/images/rooms/Standard.png" alt="Phòng Standard" class="w-full h-56 object-cover">
+            <img src="Standard.png" alt="Phòng Standard" class="w-full h-56 object-cover">
             <figcaption class="p-2 text-center font-semibold">Phòng Standard</figcaption>
           </figure>
         </div>
@@ -117,7 +117,7 @@
 
 <script>
   // API Rooms
-  var API = "http://localhost:8000/hotel/hotel-api-php/src/controllers/RoomController.php";
+  var API = "http://nhom7.itimit.id.vn/hotel/hotel-api-php/src/controllers/RoomController.php";
 
   async function loadRooms() {
     const res = await fetch(API, { credentials: 'include' });

@@ -3,11 +3,19 @@
 
 // ===== CORS =====
 $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
-$allowed = ['http://localhost', 'http://127.0.0.1', 'http://localhost:8000', 'http://127.0.0.1:8000'];
+
+$allowed = [
+  'http://localhost',
+  'http://127.0.0.1',
+  'http://localhost:8000',
+  'http://127.0.0.1:8000',
+  'https://nhom7.itimit.id.vn/hotel'
+];
+
 if (in_array($origin, $allowed, true)) {
   header("Access-Control-Allow-Origin: $origin");
 } else {
-  header("Access-Control-Allow-Origin: http://localhost:8000"); // chỉnh nếu bạn dùng host khác
+  header("Access-Control-Allow-Origin: https://nhom7.itimit.id.vn/hotel");
 }
 header("Access-Control-Allow-Credentials: true");
 header("Access-Control-Allow-Methods: GET, POST, OPTIONS");

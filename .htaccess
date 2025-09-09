@@ -1,0 +1,8 @@
+# Bật rewrite engine
+RewriteEngine On
+
+# Nếu truy cập domain gốc thì chuyển vào hotel-frontend/index.html
+RewriteRule ^$ hotel-frontend/index.html [L]
+
+# Nếu truy cập / thì cũng chuyển vào hotel-frontend/index.html
+RewriteRule ^/$ hotel-frontend/index.html [L]
